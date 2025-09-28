@@ -114,15 +114,15 @@ const start_animation = (input: StartAnimationInput) => {
         }
     });
 
-    layer2.canvas.addEventListener("mouseup", (event) => {
+    layer2.canvas.addEventListener("mouseup", () => {
         maybe_mouse_position = new None();
         maybe_previous_mouse_position = new None();
     });
-    layer2.canvas.addEventListener("touchend", (event) => {
+    layer2.canvas.addEventListener("touchend", () => {
         maybe_mouse_position = new None();
         maybe_previous_mouse_position = new None();
     });
-    layer2.canvas.addEventListener("touchcancel", (event) => {
+    layer2.canvas.addEventListener("touchcancel", () => {
         maybe_mouse_position = new None();
         maybe_previous_mouse_position = new None();
     });
