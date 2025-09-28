@@ -14,6 +14,6 @@ const router = createBrowserRouter([
         ],
         errorElement: <NotFound />
     }
-]);
+], { basename: '/learn-to-read' });
 
 export default router;
