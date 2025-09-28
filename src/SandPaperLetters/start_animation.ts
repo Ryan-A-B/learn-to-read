@@ -83,7 +83,9 @@ const start_animation = (input: StartAnimationInput) => {
     layer1.context.fillText(letter.lower, center[0] + offset_x, center[1]);
 
     layer1.context.font = `20px sans-serif`;
-    layer1.context.fillText(`Vibrate: ${vibration_enabled}`, center[0] - offset_x, center[1]);
+    layer1.context.textAlign = "left";
+    layer1.context.textBaseline = "bottom";
+    layer1.context.fillText(`Vibrate: ${vibration_enabled}`, 15, 40);
 
     mask_layer.context.clearRect(0, 0, layer1.canvas.width, layer1.canvas.height);
     mask_layer.context.font = `bold ${font_size}px sans-serif`;
@@ -99,16 +101,17 @@ const start_animation = (input: StartAnimationInput) => {
         maybe_mouse_position = new Some(layer2.get_position([event.clientX, event.clientY]));
     });
     layer2.canvas.addEventListener("touchstart", (event) => {
-        if (event.touches.length > 0) {
-            const touch = event.touches[0];
-            maybe_mouse_position = new Some(layer2.get_position([touch.clientX, touch.clientY]));
-        }
-    });
+        event.preventDefault();
+        if (event.touches.length === 0) return;
+        const touch = event.touches[0];
+        maybe_mouse_position = new Some(layer2.get_position([touch.clientX, touch.clientY]));
+    }, { passive: false });
 
     layer2.canvas.addEventListener("mousemove", (event) => {
+        event.preventDefault();
         if (maybe_mouse_position.is_none()) return;
         maybe_mouse_position = new Some(layer2.get_position([event.clientX, event.clientY]));
-    });
+    }, { passive: false });
     layer2.canvas.addEventListener("touchmove", (event) => {
         if (maybe_mouse_position.is_none()) return;
         if (event.touches.length > 0) {
