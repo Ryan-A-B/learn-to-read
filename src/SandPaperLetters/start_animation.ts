@@ -1,6 +1,6 @@
-import debounce from "../lib/debounce";
 import type { Option } from "../lib/Option";
 import { Some, None } from "../lib/Option";
+import { throttle } from "../lib/throttle";
 
 import letters from "./letters";
 
@@ -11,7 +11,7 @@ type VibrateFunction = () => void;
 const vibrate = ((): VibrateFunction => {
     if ("vibrate" in navigator) {
         console.log("Vibration API supported");
-        return debounce(() => {
+        return throttle(() => {
             navigator.vibrate(vibration_duration);
         }, vibration_duration);
     }
