@@ -5,15 +5,15 @@ import letters from "./letters";
 
 type VibrateFunction = () => void;
 
-const vibrate = ((): VibrateFunction => {
+const [vibrate, vibration_enabled] = ((): [VibrateFunction, boolean] => {
     if ("vibrate" in navigator) {
         console.log("Vibration API supported");
-        return () => {
+        return [() => {
             navigator.vibrate(100);
-        };
+        }, true];
     }
     console.log("Vibration API not supported");
-    return () => {};
+    return [() => { }, false];
 })();
 
 type Vec2 = [number, number];
@@ -69,11 +69,11 @@ const start_animation = (input: StartAnimationInput) => {
         layer1.canvas.width / 2,
         layer1.canvas.height / 2
     ];
-    
+
     const letterIndex = Math.floor(Math.random() * 26);
     const letter = letters[letterIndex];
     const font_size = Math.round(layer1.canvas.height * 0.8);
-    const offset_x = font_size * 0.6;
+    const offset_x = font_size * 0.5;
 
     layer1.context.clearRect(0, 0, layer1.canvas.width, layer1.canvas.height);
     layer1.context.font = `bold ${font_size}px sans-serif`;
@@ -81,6 +81,9 @@ const start_animation = (input: StartAnimationInput) => {
     layer1.context.textBaseline = "middle";
     layer1.context.fillText(letter.upper, center[0] - offset_x, center[1]);
     layer1.context.fillText(letter.lower, center[0] + offset_x, center[1]);
+
+    layer1.context.font = `20px sans-serif`;
+    layer1.context.fillText(`Vibrate: ${vibration_enabled}`, center[0] - offset_x, center[1]);
 
     mask_layer.context.clearRect(0, 0, layer1.canvas.width, layer1.canvas.height);
     mask_layer.context.font = `bold ${font_size}px sans-serif`;
