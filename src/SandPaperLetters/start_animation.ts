@@ -3,17 +3,19 @@ import { Some, None } from "../lib/Option";
 
 import letters from "./letters";
 
+const vibration_duration = 300;
+
 type VibrateFunction = () => void;
 
-const [vibrate, vibration_enabled] = ((): [VibrateFunction, boolean] => {
+const vibrate = ((): VibrateFunction => {
     if ("vibrate" in navigator) {
         console.log("Vibration API supported");
-        return [() => {
-            navigator.vibrate(100);
-        }, true];
+        return () => {
+            navigator.vibrate(vibration_duration);
+        };
     }
     console.log("Vibration API not supported");
-    return [() => { }, false];
+    return () => { };
 })();
 
 type Vec2 = [number, number];
@@ -81,11 +83,6 @@ const start_animation = (input: StartAnimationInput) => {
     layer1.context.textBaseline = "middle";
     layer1.context.fillText(letter.upper, center[0] - offset_x, center[1]);
     layer1.context.fillText(letter.lower, center[0] + offset_x, center[1]);
-
-    layer1.context.font = `20px sans-serif`;
-    layer1.context.textAlign = "left";
-    layer1.context.textBaseline = "bottom";
-    layer1.context.fillText(`Vibrate: ${vibration_enabled}`, 15, 40);
 
     mask_layer.context.clearRect(0, 0, layer1.canvas.width, layer1.canvas.height);
     mask_layer.context.font = `bold ${font_size}px sans-serif`;
