@@ -75,13 +75,14 @@ const start_animation = (input: StartAnimationInput) => {
 
     const letterIndex = Math.floor(Math.random() * 26);
     const letter = letters[letterIndex];
-    const font_size = Math.round(layer1.canvas.height * 0.8);
+    const font_size = Math.round(layer1.canvas.height * 0.6);
     const offset_x = font_size * 0.5;
 
     layer1.context.clearRect(0, 0, layer1.canvas.width, layer1.canvas.height);
     layer1.context.font = `bold ${font_size}px sans-serif`;
     layer1.context.textAlign = "center";
     layer1.context.textBaseline = "middle";
+    layer1.context.fillStyle = "#aaaaaa";
     layer1.context.fillText(letter.upper, center[0] - offset_x, center[1]);
     layer1.context.fillText(letter.lower, center[0] + offset_x, center[1]);
 
