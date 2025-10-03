@@ -133,6 +133,7 @@ class Ready extends AbstractState {
     handle_mouse_up(proxy: Proxy, event: MouseEvent): void { }
 
     handle_touch_start(proxy: Proxy, event: TouchEvent): void {
+        event.preventDefault();
         if (event.touches.length === 0) return;
         proxy.set_state(new TouchDrawing({
             guide_layer: this.guide_layer,
@@ -273,6 +274,7 @@ class TouchDrawing extends AbstractState {
     handle_touch_start(proxy: Proxy, event: TouchEvent): void { }
 
     handle_touch_move = (proxy: Proxy, event: TouchEvent): void => {
+        event.preventDefault();
         const maybe_touch = TouchDrawing.get_touch_by_identifier(this.identifier, event.touches);
         if (maybe_touch.is_none()) return;
         const touch = maybe_touch.value;
@@ -281,12 +283,14 @@ class TouchDrawing extends AbstractState {
     }
 
     handle_touch_end = (proxy: Proxy, event: TouchEvent): void => {
+        event.preventDefault();
         const maybe_touch = TouchDrawing.get_touch_by_identifier(this.identifier, event.changedTouches);
         if (maybe_touch.is_none()) return;
         proxy.set_state(new Clearing(this.guide_layer, this.drawing_layer));
     }
 
     handle_touch_cancel = (proxy: Proxy, event: TouchEvent): void => {
+        event.preventDefault();
         const maybe_touch = TouchDrawing.get_touch_by_identifier(this.identifier, event.changedTouches);
         if (maybe_touch.is_none()) return;
         proxy.set_state(new Clearing(this.guide_layer, this.drawing_layer));
