@@ -1,10 +1,3 @@
-// 1. Initialise
-// 2. Animate
-// 3. Handle mouse down
-// 4. Handle mouse move
-// 5. Handle mouse up
-// 6. Handle touch events
-
 import type { Vec2 } from "../lib/vec";
 import Layer from "../lib/Layer";
 import OffscreenLayer from "../lib/OffscreenLayer";
@@ -26,21 +19,21 @@ interface Proxy {
 
 abstract class AbstractState {
     abstract readonly name: string;
-    abstract initialise(proxy: Proxy, canvas: [HTMLCanvasElement, HTMLCanvasElement]): void;
-    abstract animate(proxy: Proxy): void
-    abstract handle_mouse_down(proxy: Proxy, event: MouseEvent): void;
-    abstract handle_mouse_move(proxy: Proxy, event: MouseEvent): void;
-    abstract handle_mouse_up(proxy: Proxy, event: MouseEvent): void;
-    abstract handle_touch_start(proxy: Proxy, event: TouchEvent): void;
-    abstract handle_touch_move(proxy: Proxy, event: TouchEvent): void;
-    abstract handle_touch_end(proxy: Proxy, event: TouchEvent): void;
-    abstract handle_touch_cancel(proxy: Proxy, event: TouchEvent): void;
+    initialise = (proxy: Proxy, canvas: [HTMLCanvasElement, HTMLCanvasElement]): void => { }
+    animate = (proxy: Proxy): void => { }
+    handle_mouse_down = (proxy: Proxy, event: MouseEvent): void => { }
+    handle_mouse_move = (proxy: Proxy, event: MouseEvent): void => { }
+    handle_mouse_up = (proxy: Proxy, event: MouseEvent): void => { }
+    handle_touch_start = (proxy: Proxy, event: TouchEvent): void => { }
+    handle_touch_move = (proxy: Proxy, event: TouchEvent): void => { }
+    handle_touch_end = (proxy: Proxy, event: TouchEvent): void => { }
+    handle_touch_cancel = (proxy: Proxy, event: TouchEvent): void => { }
 }
 
 class NotInitialised extends AbstractState {
     readonly name = "NotInitialised";
 
-    initialise(proxy: Proxy, canvas: [HTMLCanvasElement, HTMLCanvasElement]): void {
+    initialise = (proxy: Proxy, canvas: [HTMLCanvasElement, HTMLCanvasElement]): void => {
         const guide_layer = new Layer(canvas[0]);
         const drawing_layer = new Layer(canvas[1]);
 
@@ -57,15 +50,6 @@ class NotInitialised extends AbstractState {
             drawing_layer: drawing_layer,
         }));
     }
-
-    animate(proxy: Proxy): void { }
-    handle_mouse_down(proxy: Proxy, event: MouseEvent): void { }
-    handle_mouse_move(proxy: Proxy, event: MouseEvent): void { }
-    handle_mouse_up(proxy: Proxy, event: MouseEvent): void { }
-    handle_touch_start(proxy: Proxy, event: TouchEvent): void { }
-    handle_touch_move(proxy: Proxy, event: TouchEvent): void { }
-    handle_touch_end(proxy: Proxy, event: TouchEvent): void { }
-    handle_touch_cancel(proxy: Proxy, event: TouchEvent): void { }
 }
 
 interface NewReadyInput {
@@ -113,13 +97,7 @@ class Ready extends AbstractState {
         this.mask_layer.context.fillText(text, center[0], center[1]);
     }
 
-    initialise(proxy: Proxy, canvas: [HTMLCanvasElement, HTMLCanvasElement]): void {
-        console.warn("Already initialised");
-    }
-
-    animate(proxy: Proxy): void { }
-
-    handle_mouse_down(proxy: Proxy, event: MouseEvent): void {
+    handle_mouse_down = (proxy: Proxy, event: MouseEvent): void => {
         proxy.set_state(new MouseDrawing({
             guide_layer: this.guide_layer,
             drawing_layer: this.drawing_layer,
@@ -129,10 +107,7 @@ class Ready extends AbstractState {
         proxy.animate();
     }
 
-    handle_mouse_move(proxy: Proxy, event: MouseEvent): void { }
-    handle_mouse_up(proxy: Proxy, event: MouseEvent): void { }
-
-    handle_touch_start(proxy: Proxy, event: TouchEvent): void {
+    handle_touch_start = (proxy: Proxy, event: TouchEvent): void => {
         event.preventDefault();
         if (event.touches.length === 0) return;
         proxy.set_state(new TouchDrawing({
@@ -143,10 +118,6 @@ class Ready extends AbstractState {
         }));
         proxy.animate();
     }
-
-    handle_touch_move(proxy: Proxy, event: TouchEvent): void { }
-    handle_touch_end(proxy: Proxy, event: TouchEvent): void { }
-    handle_touch_cancel(proxy: Proxy, event: TouchEvent): void { }
 }
 
 interface NewMouseDrawingInput {
@@ -176,10 +147,6 @@ class MouseDrawing extends AbstractState {
         this.last_position = this.position;
     }
 
-    initialise(proxy: Proxy, canvas: [HTMLCanvasElement, HTMLCanvasElement]): void {
-        console.warn("Already initialised");
-    }
-
     animate = (proxy: Proxy): void => {
         requestAnimationFrame(proxy.animate);
 
@@ -199,8 +166,6 @@ class MouseDrawing extends AbstractState {
         this.last_position = this.position;
     }
 
-    handle_mouse_down(proxy: Proxy, event: MouseEvent): void { }
-
     handle_mouse_move = (proxy: Proxy, event: MouseEvent): void => {
         this.position = this.drawing_layer.get_position([event.clientX, event.clientY]);
     }
@@ -208,11 +173,6 @@ class MouseDrawing extends AbstractState {
     handle_mouse_up = (proxy: Proxy, event: MouseEvent): void => {
         proxy.set_state(new Clearing(this.guide_layer, this.drawing_layer));
     }
-
-    handle_touch_start(proxy: Proxy, event: TouchEvent): void { }
-    handle_touch_move = (proxy: Proxy, event: TouchEvent): void => { }
-    handle_touch_end = (proxy: Proxy, event: TouchEvent): void => { }
-    handle_touch_cancel = (proxy: Proxy, event: TouchEvent): void => { }
 }
 
 interface NewTouchDrawingInput {
@@ -245,10 +205,6 @@ class TouchDrawing extends AbstractState {
         this.last_position = this.position;
     }
 
-    initialise(proxy: Proxy, canvas: [HTMLCanvasElement, HTMLCanvasElement]): void {
-        console.warn("Already initialised");
-    }
-
     animate = (proxy: Proxy): void => {
         requestAnimationFrame(proxy.animate);
 
@@ -267,11 +223,6 @@ class TouchDrawing extends AbstractState {
         this.drawing_layer.context.stroke();
         this.last_position = this.position;
     }
-
-    handle_mouse_down(proxy: Proxy, event: MouseEvent): void { }
-    handle_mouse_move = (proxy: Proxy, event: MouseEvent): void => { }
-    handle_mouse_up = (proxy: Proxy, event: MouseEvent): void => { }
-    handle_touch_start(proxy: Proxy, event: TouchEvent): void { }
 
     handle_touch_move = (proxy: Proxy, event: TouchEvent): void => {
         event.preventDefault();
@@ -317,10 +268,6 @@ class Clearing extends AbstractState {
         this.drawing_layer = drawing_layer;
     }
 
-    initialise(proxy: Proxy, canvas: [HTMLCanvasElement, HTMLCanvasElement]): void {
-        console.warn("Already initialised");
-    }
-
     animate = (proxy: Proxy): void => {
         this.drawing_layer.context.clearRect(0, 0, this.drawing_layer.canvas.width, this.drawing_layer.canvas.height);
         proxy.set_state(new Ready({
@@ -328,14 +275,6 @@ class Clearing extends AbstractState {
             drawing_layer: this.drawing_layer,
         }));
     }
-
-    handle_mouse_down(proxy: Proxy, event: MouseEvent): void { }
-    handle_mouse_move(proxy: Proxy, event: MouseEvent): void { }
-    handle_mouse_up(proxy: Proxy, event: MouseEvent): void { }
-    handle_touch_start(proxy: Proxy, event: TouchEvent): void { }
-    handle_touch_move(proxy: Proxy, event: TouchEvent): void { }
-    handle_touch_end(proxy: Proxy, event: TouchEvent): void { }
-    handle_touch_cancel(proxy: Proxy, event: TouchEvent): void { }
 }
 
 type State = NotInitialised | Ready | MouseDrawing | TouchDrawing | Clearing;
