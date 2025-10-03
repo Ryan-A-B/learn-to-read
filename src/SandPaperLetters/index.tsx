@@ -4,22 +4,22 @@ import start_animation from './start_animation';
 import './styles.scss';
 
 const SandPaperLetters: React.FunctionComponent = () => {
-    const canvas1Ref = React.useRef<HTMLCanvasElement | null>(null);
-    const canvas2Ref = React.useRef<HTMLCanvasElement | null>(null);
+    const guide_canvas_ref = React.useRef<HTMLCanvasElement | null>(null);
+    const drawing_canvas_ref = React.useRef<HTMLCanvasElement | null>(null);
 
     React.useLayoutEffect(() => {
-        if (canvas1Ref.current === null) throw new Error("canvas 1 not set")
-        if (canvas2Ref.current === null) throw new Error("canvas 2 not set")
-        start_animation({
-            canvas1: canvas1Ref.current,
-            canvas2: canvas2Ref.current
-        });
+        if (guide_canvas_ref.current === null) throw new Error("canvas 1 not set")
+        if (drawing_canvas_ref.current === null) throw new Error("canvas 2 not set")
+            start_animation({
+                canvas1: guide_canvas_ref.current,
+                canvas2: drawing_canvas_ref.current
+            });
     }, []);
 
     return (
         <div id="sand-paper-letters" className="viewport">
-            <canvas ref={canvas1Ref}></canvas>
-            <canvas ref={canvas2Ref}></canvas>
+            <canvas ref={guide_canvas_ref}></canvas>
+            <canvas ref={drawing_canvas_ref}></canvas>
         </div>
     )
 }

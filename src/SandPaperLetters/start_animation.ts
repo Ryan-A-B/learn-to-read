@@ -1,60 +1,11 @@
+import type { Vec2 } from "../lib/vec";
+import Layer from "../lib/Layer";
+import OffscreenLayer from "../lib/OffscreenLayer";
 import type { Option } from "../lib/Option";
 import { Some, None } from "../lib/Option";
-import { throttle } from "../lib/throttle";
 
 import letters from "./letters";
-
-const vibration_duration = 300;
-
-type VibrateFunction = () => void;
-
-const vibrate = ((): VibrateFunction => {
-    if ("vibrate" in navigator) {
-        console.log("Vibration API supported");
-        return throttle(() => {
-            navigator.vibrate(vibration_duration);
-        }, vibration_duration);
-    }
-    console.log("Vibration API not supported");
-    return () => { };
-})();
-
-type Vec2 = [number, number];
-
-class Layer {
-    public readonly canvas: HTMLCanvasElement;
-    public readonly context: CanvasRenderingContext2D;
-    public readonly bounding_client_rect: DOMRect;
-
-    constructor(canvas: HTMLCanvasElement) {
-        this.canvas = canvas;
-        this.canvas.width = this.canvas.clientWidth * devicePixelRatio;
-        this.canvas.height = this.canvas.clientHeight * devicePixelRatio;
-        const context = canvas.getContext("2d");
-        if (context === null) throw new Error("Could not get 2D context");
-        this.context = context;
-        this.bounding_client_rect = this.canvas.getBoundingClientRect();
-    }
-
-    public get_position = (client_position: Vec2): Vec2 => {
-        return [
-            this.canvas.width * client_position[0] / this.bounding_client_rect.width,
-            this.canvas.height * client_position[1] / this.bounding_client_rect.height
-        ];
-    }
-}
-
-class OffscreenLayer {
-    public readonly canvas: OffscreenCanvas;
-    public readonly context: OffscreenCanvasRenderingContext2D;
-
-    constructor(canvas: OffscreenCanvas) {
-        this.canvas = canvas;
-        const context = canvas.getContext("2d");
-        if (context === null) throw new Error("Could not get 2D context");
-        this.context = context;
-    }
-}
+import vibrate from "../lib/vibrate";
 
 interface StartAnimationInput {
     canvas1: HTMLCanvasElement;
@@ -76,22 +27,24 @@ const start_animation = (input: StartAnimationInput) => {
     const letterIndex = Math.floor(Math.random() * 26);
     const letter = letters[letterIndex];
     const font_size = Math.round(layer1.canvas.height * 0.6);
-    const offset_x = font_size * 0.5;
+
+    const font = `bold ${font_size}px sans-serif`;
+    const text_align = "center";
+    const text_baseline = "middle";
+    const text = `${letter.upper} ${letter.lower}`;
 
     layer1.context.clearRect(0, 0, layer1.canvas.width, layer1.canvas.height);
-    layer1.context.font = `bold ${font_size}px sans-serif`;
-    layer1.context.textAlign = "center";
-    layer1.context.textBaseline = "middle";
+    layer1.context.font = font;
+    layer1.context.textAlign = text_align;
+    layer1.context.textBaseline = text_baseline;
     layer1.context.fillStyle = "#aaaaaa";
-    layer1.context.fillText(letter.upper, center[0] - offset_x, center[1]);
-    layer1.context.fillText(letter.lower, center[0] + offset_x, center[1]);
+    layer1.context.fillText(text, center[0], center[1]);
 
     mask_layer.context.clearRect(0, 0, layer1.canvas.width, layer1.canvas.height);
-    mask_layer.context.font = `bold ${font_size}px sans-serif`;
-    mask_layer.context.textAlign = "center";
-    mask_layer.context.textBaseline = "middle";
-    mask_layer.context.fillText(letter.upper, center[0] - offset_x, center[1]);
-    mask_layer.context.fillText(letter.lower, center[0] + offset_x, center[1]);
+    mask_layer.context.font = font;
+    mask_layer.context.textAlign = text_align;
+    mask_layer.context.textBaseline = text_baseline;
+    mask_layer.context.fillText(text, center[0], center[1]);
 
     let maybe_previous_mouse_position: Option<Vec2> = new None();
     let maybe_mouse_position: Option<Vec2> = new None();
