@@ -42,8 +42,8 @@ class NotInitialised extends AbstractState {
         drawing_layer.canvas.addEventListener("mouseup", proxy.handle_mouse_up);
         drawing_layer.canvas.addEventListener("touchstart", proxy.handle_touch_start, { passive: false });
         drawing_layer.canvas.addEventListener("touchmove", proxy.handle_touch_move, { passive: false });
-        drawing_layer.canvas.addEventListener("touchend", proxy.handle_touch_end);
-        drawing_layer.canvas.addEventListener("touchcancel", proxy.handle_touch_cancel);
+        drawing_layer.canvas.addEventListener("touchend", proxy.handle_touch_end, { passive: false });
+        drawing_layer.canvas.addEventListener("touchcancel", proxy.handle_touch_cancel, { passive: false });
 
         proxy.set_state(new Ready({
             guide_layer: guide_layer,
@@ -120,30 +120,28 @@ class Ready extends AbstractState {
     }
 }
 
-interface NewMouseDrawingInput {
+interface NewDrawingInput {
     guide_layer: Layer;
     drawing_layer: Layer;
     mask_layer: OffscreenLayer;
-    mouse_event: MouseEvent;
+    position: Vec2;
 }
 
-class MouseDrawing extends AbstractState {
-    readonly name = "MouseDrawing";
-    private readonly guide_layer: Layer;
-    private readonly drawing_layer: Layer;
-    private readonly mask_layer: OffscreenLayer;
-    private last_position: Vec2;
-    private position: Vec2;
+abstract class Drawing extends AbstractState {
+    protected readonly guide_layer: Layer;
+    protected readonly drawing_layer: Layer;
+    protected readonly mask_layer: OffscreenLayer;
+    protected last_position: Vec2;
+    protected position: Vec2;
 
-    constructor(input: NewMouseDrawingInput) {
+    constructor(input: NewDrawingInput) {
         super();
         this.guide_layer = input.guide_layer;
         this.drawing_layer = input.drawing_layer;
         this.drawing_layer.context.lineWidth = 20;
         this.drawing_layer.context.lineCap = "round";
         this.mask_layer = input.mask_layer;
-
-        this.position = this.drawing_layer.get_position([input.mouse_event.clientX, input.mouse_event.clientY]);
+        this.position = input.position;
         this.last_position = this.position;
     }
 
@@ -164,6 +162,27 @@ class MouseDrawing extends AbstractState {
         this.drawing_layer.context.lineTo(this.position[0], this.position[1]);
         this.drawing_layer.context.stroke();
         this.last_position = this.position;
+    }
+}
+
+interface NewMouseDrawingInput {
+    guide_layer: Layer;
+    drawing_layer: Layer;
+    mask_layer: OffscreenLayer;
+    mouse_event: MouseEvent;
+}
+
+class MouseDrawing extends Drawing {
+    readonly name = "MouseDrawing";
+
+    constructor(input: NewMouseDrawingInput) {
+        const position = input.drawing_layer.get_position([input.mouse_event.clientX, input.mouse_event.clientY]);
+        super({
+            guide_layer: input.guide_layer,
+            drawing_layer: input.drawing_layer,
+            mask_layer: input.mask_layer,
+            position: position,
+        });
     }
 
     handle_mouse_move = (proxy: Proxy, event: MouseEvent): void => {
@@ -182,46 +201,20 @@ interface NewTouchDrawingInput {
     touch_event: TouchEvent;
 }
 
-class TouchDrawing extends AbstractState {
+class TouchDrawing extends Drawing {
     readonly name = "TouchDrawing";
-    private readonly guide_layer: Layer;
-    private readonly drawing_layer: Layer;
-    private readonly mask_layer: OffscreenLayer;
     private readonly identifier: number;
-    private last_position: Vec2;
-    private position: Vec2;
 
     constructor(input: NewTouchDrawingInput) {
-        super();
-        this.guide_layer = input.guide_layer;
-        this.drawing_layer = input.drawing_layer;
-        this.drawing_layer.context.lineWidth = 20;
-        this.drawing_layer.context.lineCap = "round";
-        this.mask_layer = input.mask_layer;
-
         const touch = input.touch_event.touches[0];
+        const position = input.drawing_layer.get_position([touch.clientX, touch.clientY]);
+        super({
+            guide_layer: input.guide_layer,
+            drawing_layer: input.drawing_layer,
+            mask_layer: input.mask_layer,
+            position: position,
+        });
         this.identifier = touch.identifier;
-        this.position = this.drawing_layer.get_position([touch.clientX, touch.clientY]);
-        this.last_position = this.position;
-    }
-
-    animate = (proxy: Proxy): void => {
-        requestAnimationFrame(proxy.animate);
-
-        const previous_miss = this.mask_layer.context.getImageData(this.last_position[0], this.last_position[1], 1, 1).data[3] === 0;
-        const miss = this.mask_layer.context.getImageData(this.position[0], this.position[1], 1, 1).data[3] === 0;
-        if (previous_miss || miss) {
-            this.drawing_layer.context.strokeStyle = "red";
-        } else {
-            this.drawing_layer.context.strokeStyle = "black";
-            vibrate();
-        }
-
-        this.drawing_layer.context.beginPath();
-        this.drawing_layer.context.moveTo(this.last_position[0], this.last_position[1]);
-        this.drawing_layer.context.lineTo(this.position[0], this.position[1]);
-        this.drawing_layer.context.stroke();
-        this.last_position = this.position;
     }
 
     handle_touch_move = (proxy: Proxy, event: TouchEvent): void => {
