@@ -134,7 +134,6 @@ class Ready extends AbstractState {
 
     handle_touch_start(proxy: Proxy, event: TouchEvent): void {
         if (event.touches.length === 0) return;
-        const touch = event.touches[0];
         proxy.set_state(new TouchDrawing({
             guide_layer: this.guide_layer,
             drawing_layer: this.drawing_layer,
