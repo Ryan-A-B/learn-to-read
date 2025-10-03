@@ -1,7 +1,9 @@
 import React from 'react';
-import start_animation from './start_animation';
+import Service from './Service';
 
 import './styles.scss';
+
+const service = new Service();
 
 const SandPaperLetters: React.FunctionComponent = () => {
     const guide_canvas_ref = React.useRef<HTMLCanvasElement | null>(null);
@@ -10,10 +12,7 @@ const SandPaperLetters: React.FunctionComponent = () => {
     React.useLayoutEffect(() => {
         if (guide_canvas_ref.current === null) throw new Error("canvas 1 not set")
         if (drawing_canvas_ref.current === null) throw new Error("canvas 2 not set")
-            start_animation({
-                canvas1: guide_canvas_ref.current,
-                canvas2: drawing_canvas_ref.current
-            });
+        service.initialise([guide_canvas_ref.current, drawing_canvas_ref.current])
     }, []);
 
     return (
