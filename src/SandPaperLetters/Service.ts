@@ -78,10 +78,10 @@ class Ready extends AbstractState {
             this.guide_layer.canvas.height / 2
         ];
 
-        const font = `bold ${font_size}px sans-serif`;
+        const font = `${font_size}px monospace`;
         const text_align = "center";
         const text_baseline = "middle";
-        const text = `${letter.upper} ${letter.lower}`;
+        const text = `${letter.upper}${letter.lower}`;
 
         this.guide_layer.clear();
         this.guide_layer.context.font = font;
