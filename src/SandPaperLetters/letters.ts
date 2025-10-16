@@ -1,4 +1,4 @@
-interface Letter {
+export interface Letter {
     upper: string;
     lower: string;
 }

@@ -2,12 +2,13 @@ import type { Vec2 } from "../lib/vec";
 import Layer from "../lib/Layer";
 import OffscreenLayer from "../lib/OffscreenLayer";
 import { type Option, Some, None } from "../lib/Option";
-import letters from "./letters";
+import letters, { type Letter } from "./letters";
 import vibrate from "../lib/vibrate";
 
 interface Proxy {
     set_state(state: State): void;
     animate(): void;
+    handle_resize(event: UIEvent): void;
     handle_mouse_down(event: MouseEvent): void;
     handle_mouse_move(event: MouseEvent): void;
     handle_mouse_up(event: MouseEvent): void;
@@ -21,6 +22,7 @@ abstract class AbstractState {
     abstract readonly name: string;
     initialise = (proxy: Proxy, canvas: [HTMLCanvasElement, HTMLCanvasElement]): void => { }
     animate = (proxy: Proxy): void => { }
+    handle_resize = (proxy: Proxy, event: UIEvent): void => { }
     handle_mouse_down = (proxy: Proxy, event: MouseEvent): void => { }
     handle_mouse_move = (proxy: Proxy, event: MouseEvent): void => { }
     handle_mouse_up = (proxy: Proxy, event: MouseEvent): void => { }
@@ -37,6 +39,7 @@ class NotInitialised extends AbstractState {
         const guide_layer = new Layer(canvas[0]);
         const drawing_layer = new Layer(canvas[1]);
 
+        window.addEventListener("resize", proxy.handle_resize);
         drawing_layer.canvas.addEventListener("mousedown", proxy.handle_mouse_down);
         drawing_layer.canvas.addEventListener("mousemove", proxy.handle_mouse_move);
         drawing_layer.canvas.addEventListener("mouseup", proxy.handle_mouse_up);
@@ -62,6 +65,7 @@ class Ready extends AbstractState {
     private readonly guide_layer: Layer;
     private readonly drawing_layer: Layer;
     private readonly mask_layer: OffscreenLayer;
+    private readonly letter: Letter;
 
     constructor(input: NewReadyInput) {
         super();
@@ -70,31 +74,22 @@ class Ready extends AbstractState {
         this.mask_layer = new OffscreenLayer(new OffscreenCanvas(this.guide_layer.canvas.width, this.guide_layer.canvas.height));
 
         const letterIndex = Math.floor(Math.random() * 26);
-        const letter = letters[letterIndex];
-        const font_size = Math.round(this.guide_layer.canvas.height * 0.6);
-
-        const center: Vec2 = [
-            this.guide_layer.canvas.width / 2,
-            this.guide_layer.canvas.height / 2
-        ];
-
-        const font = `${font_size}px monospace`;
-        const text_align = "center";
-        const text_baseline = "middle";
-        const text = `${letter.upper}${letter.lower}`;
-
+        this.letter = letters[letterIndex];
+        const text_align: CanvasTextAlign = "center";
+        const text_baseline: CanvasTextBaseline = "middle";
+        
         this.guide_layer.clear();
-        this.guide_layer.context.font = font;
         this.guide_layer.context.textAlign = text_align;
         this.guide_layer.context.textBaseline = text_baseline;
         this.guide_layer.context.fillStyle = "#aaaaaa";
-        this.guide_layer.context.fillText(text, center[0], center[1]);
-
+        
         this.mask_layer.clear();
-        this.mask_layer.context.font = font;
         this.mask_layer.context.textAlign = text_align;
         this.mask_layer.context.textBaseline = text_baseline;
-        this.mask_layer.context.fillText(text, center[0], center[1]);
+
+        const landscape = this.guide_layer.canvas.width > this.guide_layer.canvas.height;
+        if (landscape) this.prepare_landscape();
+        else this.prepare_portrait();
     }
 
     handle_mouse_down = (proxy: Proxy, event: MouseEvent): void => {
@@ -117,6 +112,50 @@ class Ready extends AbstractState {
             touch_event: event,
         }));
         proxy.animate();
+    }
+
+    handle_resize = (proxy: Proxy, event: UIEvent): void => {
+        proxy.set_state(new Ready({
+            guide_layer: new Layer(this.guide_layer.canvas),
+            drawing_layer: new Layer(this.drawing_layer.canvas),
+        }));
+    }
+
+    private prepare_landscape = (): void => {
+        const font_size = Math.round(this.guide_layer.canvas.height * 0.6);
+        const font = `${font_size}px monospace`;
+        const text = `${this.letter.upper}${this.letter.lower}`;
+
+        this.guide_layer.context.font = font;
+        this.mask_layer.context.font = font;
+
+        const center: Vec2 = [
+            this.guide_layer.canvas.width / 2,
+            this.guide_layer.canvas.height / 2
+        ];
+        this.guide_layer.context.fillText(text, center[0], center[1]);
+        this.mask_layer.context.fillText(text, center[0], center[1]);
+    }
+
+    private prepare_portrait = (): void => {
+        const font_size = Math.round(this.guide_layer.canvas.height * 15 / 36);
+        const font = `${font_size}px monospace`;
+        this.guide_layer.context.font = font;
+        this.mask_layer.context.font = font;
+
+        const upper_center: Vec2 = [
+            this.guide_layer.canvas.width / 2,
+            this.guide_layer.canvas.height * 11 / 36
+        ];
+        this.guide_layer.context.fillText(this.letter.upper, upper_center[0], upper_center[1]);
+        this.mask_layer.context.fillText(this.letter.upper, upper_center[0], upper_center[1]);
+
+        const lower_center: Vec2 = [
+            this.guide_layer.canvas.width / 2,
+            this.guide_layer.canvas.height * 27 / 36
+        ];
+        this.guide_layer.context.fillText(this.letter.lower, lower_center[0], lower_center[1]);
+        this.mask_layer.context.fillText(this.letter.lower, lower_center[0], lower_center[1]);
     }
 }
 
@@ -281,6 +320,7 @@ class Service {
         this.proxy = {
             set_state: this.set_state,
             animate: this.animate,
+            handle_resize: this.handle_resize,
             handle_mouse_down: this.handle_mouse_down,
             handle_mouse_move: this.handle_mouse_move,
             handle_mouse_up: this.handle_mouse_up,
@@ -303,6 +343,10 @@ class Service {
         const previous_state = this.state;
         this.state = state;
         console.log(`StateChanged: from ${previous_state.name} to ${state.name}`);
+    }
+
+    private handle_resize = (event: UIEvent): void => {
+        this.state.handle_resize(this.proxy, event);
     }
 
     private handle_mouse_down = (event: MouseEvent): void => {
