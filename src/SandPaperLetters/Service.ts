@@ -48,9 +48,13 @@ class NotInitialised extends AbstractState {
         drawing_layer.canvas.addEventListener("touchend", proxy.handle_touch_end, { passive: false });
         drawing_layer.canvas.addEventListener("touchcancel", proxy.handle_touch_cancel, { passive: false });
 
+        const letterIndex = Math.floor(Math.random() * 26);
+        const letter = letters[letterIndex];
+
         proxy.set_state(new Ready({
-            guide_layer: guide_layer,
-            drawing_layer: drawing_layer,
+            guide_layer,
+            drawing_layer,
+            letter,
         }));
     }
 }
@@ -58,6 +62,7 @@ class NotInitialised extends AbstractState {
 interface NewReadyInput {
     guide_layer: Layer;
     drawing_layer: Layer;
+    letter: Letter;
 }
 
 class Ready extends AbstractState {
@@ -71,10 +76,9 @@ class Ready extends AbstractState {
         super();
         this.guide_layer = input.guide_layer;
         this.drawing_layer = input.drawing_layer;
+        this.letter = input.letter;
         this.mask_layer = new OffscreenLayer(new OffscreenCanvas(this.guide_layer.canvas.width, this.guide_layer.canvas.height));
 
-        const letterIndex = Math.floor(Math.random() * 26);
-        this.letter = letters[letterIndex];
         const text_align: CanvasTextAlign = "center";
         const text_baseline: CanvasTextBaseline = "middle";
         
@@ -97,6 +101,7 @@ class Ready extends AbstractState {
             guide_layer: this.guide_layer,
             drawing_layer: this.drawing_layer,
             mask_layer: this.mask_layer,
+            letter: this.letter,
             mouse_event: event,
         }));
         proxy.animate();
@@ -109,6 +114,7 @@ class Ready extends AbstractState {
             guide_layer: this.guide_layer,
             drawing_layer: this.drawing_layer,
             mask_layer: this.mask_layer,
+            letter: this.letter,
             touch_event: event,
         }));
         proxy.animate();
@@ -118,6 +124,7 @@ class Ready extends AbstractState {
         proxy.set_state(new Ready({
             guide_layer: new Layer(this.guide_layer.canvas),
             drawing_layer: new Layer(this.drawing_layer.canvas),
+            letter: this.letter,
         }));
     }
 
@@ -163,6 +170,7 @@ interface NewDrawingInput {
     guide_layer: Layer;
     drawing_layer: Layer;
     mask_layer: OffscreenLayer;
+    letter: Letter;
     position: Vec2;
 }
 
@@ -170,6 +178,7 @@ abstract class Drawing extends AbstractState {
     protected readonly guide_layer: Layer;
     protected readonly drawing_layer: Layer;
     protected readonly mask_layer: OffscreenLayer;
+    protected readonly letter: Letter;
     protected last_position: Vec2;
     protected position: Vec2;
 
@@ -177,11 +186,13 @@ abstract class Drawing extends AbstractState {
         super();
         this.guide_layer = input.guide_layer;
         this.drawing_layer = input.drawing_layer;
-        this.drawing_layer.context.lineWidth = 20;
-        this.drawing_layer.context.lineCap = "round";
         this.mask_layer = input.mask_layer;
+        this.letter = input.letter;
         this.position = input.position;
         this.last_position = this.position;
+
+        this.drawing_layer.context.lineWidth = 20;
+        this.drawing_layer.context.lineCap = "round";
     }
 
     animate = (proxy: Proxy): void => {
@@ -208,6 +219,7 @@ interface NewMouseDrawingInput {
     guide_layer: Layer;
     drawing_layer: Layer;
     mask_layer: OffscreenLayer;
+    letter: Letter;
     mouse_event: MouseEvent;
 }
 
@@ -220,6 +232,7 @@ class MouseDrawing extends Drawing {
             guide_layer: input.guide_layer,
             drawing_layer: input.drawing_layer,
             mask_layer: input.mask_layer,
+            letter: input.letter,
             position: position,
         });
     }
@@ -229,7 +242,11 @@ class MouseDrawing extends Drawing {
     }
 
     handle_mouse_up = (proxy: Proxy, event: MouseEvent): void => {
-        proxy.set_state(new Clearing(this.guide_layer, this.drawing_layer));
+        proxy.set_state(new Clearing({
+            guide_layer: this.guide_layer,
+            drawing_layer: this.drawing_layer,
+            letter: this.letter,
+        }));
     }
 }
 
@@ -237,6 +254,7 @@ interface NewTouchDrawingInput {
     guide_layer: Layer;
     drawing_layer: Layer;
     mask_layer: OffscreenLayer;
+    letter: Letter;
     touch_event: TouchEvent;
 }
 
@@ -251,6 +269,7 @@ class TouchDrawing extends Drawing {
             guide_layer: input.guide_layer,
             drawing_layer: input.drawing_layer,
             mask_layer: input.mask_layer,
+            letter: input.letter,
             position: position,
         });
         this.identifier = touch.identifier;
@@ -269,14 +288,22 @@ class TouchDrawing extends Drawing {
         event.preventDefault();
         const maybe_touch = TouchDrawing.get_touch_by_identifier(this.identifier, event.changedTouches);
         if (maybe_touch.is_none()) return;
-        proxy.set_state(new Clearing(this.guide_layer, this.drawing_layer));
+        proxy.set_state(new Clearing({
+            guide_layer: this.guide_layer,
+            drawing_layer: this.drawing_layer,
+            letter: this.letter,
+        }));
     }
 
     handle_touch_cancel = (proxy: Proxy, event: TouchEvent): void => {
         event.preventDefault();
         const maybe_touch = TouchDrawing.get_touch_by_identifier(this.identifier, event.changedTouches);
         if (maybe_touch.is_none()) return;
-        proxy.set_state(new Clearing(this.guide_layer, this.drawing_layer));
+        proxy.set_state(new Clearing({
+            guide_layer: this.guide_layer,
+            drawing_layer: this.drawing_layer,
+            letter: this.letter,
+        }));
     }
 
     private static get_touch_by_identifier = (identifier: number, touches: TouchList): Option<Touch> => {
@@ -289,15 +316,23 @@ class TouchDrawing extends Drawing {
     }
 }
 
+interface NewClearingInput {
+    guide_layer: Layer;
+    drawing_layer: Layer;
+    letter: Letter;
+}
+
 class Clearing extends AbstractState {
     readonly name = "Clearing";
     private readonly guide_layer: Layer;
     private readonly drawing_layer: Layer;
+    private readonly letter: Letter;
 
-    constructor(guide_layer: Layer, drawing_layer: Layer) {
+    constructor(input: NewClearingInput) {
         super();
-        this.guide_layer = guide_layer;
-        this.drawing_layer = drawing_layer;
+        this.guide_layer = input.guide_layer;
+        this.drawing_layer = input.drawing_layer;
+        this.letter = input.letter;
     }
 
     animate = (proxy: Proxy): void => {
@@ -305,6 +340,7 @@ class Clearing extends AbstractState {
         proxy.set_state(new Ready({
             guide_layer: this.guide_layer,
             drawing_layer: this.drawing_layer,
+            letter: this.letter,
         }));
     }
 }
