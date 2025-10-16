@@ -145,14 +145,14 @@ class Ready extends AbstractState {
 
         const upper_center: Vec2 = [
             this.guide_layer.canvas.width / 2,
-            this.guide_layer.canvas.height * 11 / 36
+            this.guide_layer.canvas.height * 9 / 36
         ];
         this.guide_layer.context.fillText(this.letter.upper, upper_center[0], upper_center[1]);
         this.mask_layer.context.fillText(this.letter.upper, upper_center[0], upper_center[1]);
 
         const lower_center: Vec2 = [
             this.guide_layer.canvas.width / 2,
-            this.guide_layer.canvas.height * 27 / 36
+            this.guide_layer.canvas.height * 25 / 36
         ];
         this.guide_layer.context.fillText(this.letter.lower, lower_center[0], lower_center[1]);
         this.mask_layer.context.fillText(this.letter.lower, lower_center[0], lower_center[1]);
