@@ -140,7 +140,6 @@ class Ready extends AbstractState {
             guide_layer: this.guide_layer,
             drawing_layer: this.drawing_layer,
             ui_layer: this.ui_layer,
-            refresh_button: this.refresh_button,
             mask_layer: this.mask_layer,
             letter: this.letter,
             mouse_event: event,
@@ -173,7 +172,6 @@ class Ready extends AbstractState {
             guide_layer: this.guide_layer,
             drawing_layer: this.drawing_layer,
             ui_layer: this.ui_layer,
-            refresh_button: this.refresh_button,
             mask_layer: this.mask_layer,
             letter: this.letter,
             touch_event: event,
@@ -232,7 +230,6 @@ interface NewDrawingInput {
     guide_layer: Layer;
     drawing_layer: Layer;
     ui_layer: Layer;
-    refresh_button: RefreshButton;
     mask_layer: OffscreenLayer;
     letter: Letter;
     position: Vec2;
@@ -242,7 +239,6 @@ abstract class Drawing extends AbstractState {
     protected readonly guide_layer: Layer;
     protected readonly drawing_layer: Layer;
     protected readonly ui_layer: Layer;
-    protected readonly refresh_button: RefreshButton;
     protected readonly mask_layer: OffscreenLayer;
     protected readonly letter: Letter;
     protected last_position: Vec2;
@@ -253,7 +249,6 @@ abstract class Drawing extends AbstractState {
         this.guide_layer = input.guide_layer;
         this.drawing_layer = input.drawing_layer;
         this.ui_layer = input.ui_layer;
-        this.refresh_button = input.refresh_button;
         this.mask_layer = input.mask_layer;
         this.letter = input.letter;
         this.position = input.position;
@@ -287,7 +282,6 @@ interface NewMouseDrawingInput {
     guide_layer: Layer;
     drawing_layer: Layer;
     ui_layer: Layer;
-    refresh_button: RefreshButton;
     mask_layer: OffscreenLayer;
     letter: Letter;
     mouse_event: MouseEvent;
@@ -302,7 +296,6 @@ class MouseDrawing extends Drawing {
             guide_layer: input.guide_layer,
             drawing_layer: input.drawing_layer,
             ui_layer: input.ui_layer,
-            refresh_button: input.refresh_button,
             mask_layer: input.mask_layer,
             letter: input.letter,
             position: position,
@@ -318,7 +311,6 @@ class MouseDrawing extends Drawing {
             guide_layer: this.guide_layer,
             drawing_layer: this.drawing_layer,
             ui_layer: this.ui_layer,
-            refresh_button: this.refresh_button,
             letter: this.letter,
         }));
     }
@@ -328,7 +320,6 @@ interface NewTouchDrawingInput {
     guide_layer: Layer;
     drawing_layer: Layer;
     ui_layer: Layer;
-    refresh_button: RefreshButton;
     mask_layer: OffscreenLayer;
     letter: Letter;
     touch_event: TouchEvent;
@@ -345,7 +336,6 @@ class TouchDrawing extends Drawing {
             guide_layer: input.guide_layer,
             drawing_layer: input.drawing_layer,
             ui_layer: input.ui_layer,
-            refresh_button: input.refresh_button,
             mask_layer: input.mask_layer,
             letter: input.letter,
             position: position,
@@ -370,7 +360,6 @@ class TouchDrawing extends Drawing {
             guide_layer: this.guide_layer,
             drawing_layer: this.drawing_layer,
             ui_layer: this.ui_layer,
-            refresh_button: this.refresh_button,
             letter: this.letter,
         }));
     }
@@ -383,7 +372,6 @@ class TouchDrawing extends Drawing {
             guide_layer: this.guide_layer,
             drawing_layer: this.drawing_layer,
             ui_layer: this.ui_layer,
-            refresh_button: this.refresh_button,
             letter: this.letter,
         }));
     }
@@ -402,7 +390,6 @@ interface NewClearingInput {
     guide_layer: Layer;
     drawing_layer: Layer;
     ui_layer: Layer;
-    refresh_button: RefreshButton;
     letter: Letter;
 }
 
@@ -411,7 +398,6 @@ class Clearing extends AbstractState {
     private readonly guide_layer: Layer;
     private readonly drawing_layer: Layer;
     private readonly ui_layer: Layer;
-    private readonly refresh_button: RefreshButton;
     private readonly letter: Letter;
 
     constructor(input: NewClearingInput) {
@@ -419,7 +405,6 @@ class Clearing extends AbstractState {
         this.guide_layer = input.guide_layer;
         this.drawing_layer = input.drawing_layer;
         this.ui_layer = input.ui_layer;
-        this.refresh_button = input.refresh_button;
         this.letter = input.letter;
     }
 
